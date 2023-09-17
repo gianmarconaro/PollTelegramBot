@@ -23,6 +23,13 @@ class Poll:
             )
         except sqlite3.OperationalError as exc:
             print(f"Error: {exc}")
+        try:
+            c.execute(
+                # devo salvarmi giocatore, poll dove ha votato, e se ha risposto giusto o sbagliato
+                "CREATE TABLE IF NOT EXISTS votes (TELEGRAM_PLAYER_ID text, TELEGRAM_POLL_ID int, CORRECT bool, PRIMARY KEY (TELEGRAM_PLAYER_ID, TELEGRAM_POLL_ID))"
+            )
+        except sqlite3.OperationalError as exc:
+            print(f"Error: {exc}")
         conn.commit()
         conn.close()
 
@@ -113,7 +120,10 @@ class Poll:
     def reset_streak_player(self, telegram_player_id):
         conn = sqlite3.connect(self._FILE_DB)
         c = conn.cursor()
-        c.execute("UPDATE players SET streak = 0 WHERE TELEGRAM_PLAYER_ID = ?", (telegram_player_id,))
+        c.execute(
+            "UPDATE players SET streak = 0 WHERE TELEGRAM_PLAYER_ID = ?",
+            (telegram_player_id,),
+        )
         conn.commit()
         conn.close()
 
@@ -140,3 +150,52 @@ class Poll:
         scoreboard = c.fetchall()
         conn.close()
         return scoreboard
+
+    def save_vote(self, telegram_player_id, telegram_poll_id, correct):
+        conn = sqlite3.connect(self._FILE_DB)
+        c = conn.cursor()
+        c.execute(
+            "INSERT INTO votes VALUES (?, ?, ?)",
+            (telegram_player_id, telegram_poll_id, correct),
+        )
+        conn.commit()
+        conn.close()
+
+    def get_telegram_poll_id_from_poll_id(self, poll_id):
+        conn = sqlite3.connect(self._FILE_DB)
+        c = conn.cursor()
+        c.execute("SELECT TELEGRAM_POLL_ID FROM polls WHERE POLL_ID = ?", (poll_id,))
+        telegram_poll_id = c.fetchone()[0]
+        conn.close()
+        return telegram_poll_id
+
+    def get_votes(self, poll_id):
+        telegram_poll_id = self.get_telegram_poll_id_from_poll_id(poll_id)
+
+        conn = sqlite3.connect(self._FILE_DB)
+        c = conn.cursor()
+        c.execute("SELECT * FROM votes WHERE TELEGRAM_POLL_ID = ?", (telegram_poll_id,))
+        votes = c.fetchall()
+        conn.close()
+        return votes
+
+    def get_poll_status(self, poll_id):
+        # use the poll_id and not the telegram_poll_id
+        conn = sqlite3.connect(self._FILE_DB)
+        c = conn.cursor()
+        c.execute("SELECT CLOSED FROM polls WHERE POLL_ID = ?", (poll_id,))
+        poll = c.fetchone()[0]
+        conn.close()
+        return poll
+
+    def update_scores(self, poll_id):
+        # check thta poll is closed
+        poll = self.get_poll_status(poll_id)
+        if poll:
+            votes = self.get_votes(poll_id)
+            for vote in votes:
+                telegram_player_id, correct = vote[0], vote[2]
+                if correct:
+                    self.increment_score_player(telegram_player_id)
+                else:
+                    self.reset_streak_player(telegram_player_id)

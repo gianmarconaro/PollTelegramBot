@@ -65,9 +65,11 @@ async def receive_poll_answer(
     db.Poll().add_player(telegram_user_id, answer.user.username)
 
     if user_option == correct_option:
-        db.Poll().increment_score_player(telegram_user_id)
+        db.Poll().save_vote(telegram_user_id, telegram_poll_id, True)
+        # db.Poll().increment_score_player(telegram_user_id)
     else:
-        db.Poll().reset_streak_player(telegram_user_id)
+        db.Poll().save_vote(telegram_user_id, telegram_poll_id, False)
+        # db.Poll().reset_streak_player(telegram_user_id)
 
 
 # create a function that loads all the polls from db that are not closed,
@@ -83,9 +85,6 @@ async def close_expired_polls(bot: ApplicationBuilder.bot):
             asyncio.create_task(close_poll(bot, poll_id, message_id))
         else:
             asyncio.create_task(schedule_close_poll(bot, poll_id, message_id, end_date))
-        
-        # print the scoreboard
-
 
 
 def main():

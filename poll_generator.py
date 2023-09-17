@@ -35,6 +35,15 @@ current_poll = {}
 # emotes
 pill_emote = "💊 "
 alarm_emote = "⏰ "
+light_bulb_emote = "💡 "  # leaderboard
+fire_emote = "🔥 "  # 3 streak
+plane_emote = "✈️ "  # 5 streak
+rocket_emote = "🚀 "  # 7 streak
+star_emote = "⭐️ "  # 10 streak
+planet_emote = "🪐 "  # 12 streak
+trophy_emote = "🏆 "  # 15 streak
+crown_emote = "👑 "  # 17 streak
+moyai_emote = "🗿 "  # 20 streak
 
 
 def conversation_handler():
@@ -170,7 +179,7 @@ async def enter_explanation(update: Update, context: CallbackContext):
         + "\n\nOptions:\n"
         + "\n".join(current_poll["options"])
         + "\n\nCorrect answer: "
-        + str(current_poll["correct_option"])
+        + str(current_poll["correct_option"] + 1)
         + "\n\nExplanation: "
         + current_poll["explanation"]
         + "\n\nDo you want to create the poll?",
@@ -312,8 +321,44 @@ async def close_poll(bot, poll_id, message_id):
     message = alarm_emote + "DEILIPILL #" + str(poll_id) + " closed!"
     await bot.send_message(chat_id=os.environ.get("GROUP_ID"), text=message)
 
+    db.Poll().update_scores(poll_id)
+    await print_scoreboard(bot)
+
 
 async def schedule_close_poll(bot, poll_id, message_id, end_date):
     delta = end_date - datetime.now()
     await asyncio.sleep(delta.total_seconds())
     await close_poll(bot, poll_id, message_id)
+
+
+async def print_scoreboard(bot):
+
+    def compose_string(score_tuple):
+        telegram_player_id, username, score, streak, longest_streak = score_tuple
+        if streak >= 3 and streak < 5:
+            return f"{username}: {score} points - {streak} in streak {fire_emote}"
+        if streak >= 5 and streak < 7:
+            return f"{username}: {score} points - {streak} in streak {plane_emote}"
+        if streak >= 7 and streak < 10:
+            return f"{username}: {score} points - {streak} in streak {rocket_emote}"
+        if streak >= 10 and streak < 12:
+            return f"{username}: {score} points - {streak} in streak {star_emote}"
+        if streak >= 12 and streak < 15:
+            return f"{username}: {score} points - {streak} in streak {planet_emote}"
+        if streak >= 15 and streak < 17:
+            return f"{username}: {score} points - {streak} in streak {trophy_emote}"
+        if streak >= 17 and streak < 20:
+            return f"{username}: {score} points - {streak} in streak {crown_emote}"
+        if streak >= 20:
+            return f"{username}: {score} points - {streak} in streak {moyai_emote}"
+        else:
+            return f"{username}: {score} points"
+    
+    scoreboard = db.Poll().get_scoreboard()
+    intro = f"{light_bulb_emote} SCOREBOARD:\n\n"
+    results_string = intro + "\n- ".join([compose_string(score_tuple) for score_tuple in scoreboard])
+
+    await bot.send_message(
+        chat_id=os.environ.get("GROUP_ID"),
+        text=results_string,
+    )
