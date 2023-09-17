@@ -36,6 +36,12 @@ async def unknown(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
+async def send_msg(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # retrieve the message to send
+    message = update.message.text[6:]
+    await context.bot.send_message(chat_id=CHAT_ID, text=message)
+
+
 # Function to handle the /start command
 async def start(update: Update, context: CallbackContext):
     await update.message.reply_text(
@@ -111,6 +117,10 @@ def main():
     # test
     test_handler = CommandHandler("test", generate_test_poll)
     application.add_handler(test_handler)
+
+    # send
+    message_handler = CommandHandler("send", send_msg)
+    application.add_handler(message_handler)
 
     # unknown
     unknown_handler = MessageHandler(filters.COMMAND, unknown)
