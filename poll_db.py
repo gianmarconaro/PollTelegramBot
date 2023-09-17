@@ -4,7 +4,7 @@ import os
 
 class Poll:
     def __init__(self):
-        self._FILE_DB = "poll_db.db"
+        self._FILE_DB = "db/poll_db.db"
         if not os.path.isfile(self._FILE_DB):
             with open(self._FILE_DB, "w", encoding="utf-8") as _:
                 pass
@@ -25,7 +25,6 @@ class Poll:
             print(f"Error: {exc}")
         try:
             c.execute(
-                # devo salvarmi giocatore, poll dove ha votato, e se ha risposto giusto o sbagliato
                 "CREATE TABLE IF NOT EXISTS votes (TELEGRAM_PLAYER_ID text, TELEGRAM_POLL_ID int, CORRECT bool, PRIMARY KEY (TELEGRAM_PLAYER_ID, TELEGRAM_POLL_ID))"
             )
         except sqlite3.OperationalError as exc:

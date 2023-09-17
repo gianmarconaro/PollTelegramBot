@@ -1,14 +1,14 @@
-# Usa un'immagine di base con supporto per Python
 FROM python:3.8-slim
 
-# Imposta la directory di lavoro all'interno del contenitore
 WORKDIR /app
 
-# Copia i file del bot (presumibilmente nella cartella corrente) all'interno del contenitore
-COPY . .
+# Install dependencies first to cache them
+COPY requirements.txt requirements.txt
 
-# Installa le dipendenze del bot
 RUN pip install -r requirements.txt
 
-# Comando per eseguire il bot
+# Copy the rest of the files
+COPY . .
+
+# Run the bot
 CMD ["python", "bot.py"]
