@@ -239,7 +239,7 @@ async def enter_send_poll(update: Update, context: CallbackContext):
         current_poll_id = db.Poll().get_next_poll_id()
         telegram_poll_id = poll_message.poll.id
         start_time = datetime.now()
-        end_time = start_time + timedelta(seconds=30)
+        end_time = start_time + timedelta(hours=24)
         options = ", ".join(current_poll["options"])
 
         # add the poll to the database
