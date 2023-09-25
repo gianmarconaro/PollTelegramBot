@@ -145,7 +145,7 @@ class Poll:
         # order by score desc and streak desc
         conn = sqlite3.connect(self._FILE_DB)
         c = conn.cursor()
-        c.execute("SELECT * FROM players ORDER BY score DESC, streak DESC")
+        c.execute("SELECT * FROM players ORDER BY score DESC, longest_streak DESC, streak DESC")
         scoreboard = c.fetchall()
         conn.close()
         return scoreboard
