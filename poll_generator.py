@@ -33,17 +33,37 @@ import asyncio
 current_poll = {}
 
 # emotes
-pill_emote = "💊 "
-alarm_emote = "⏰ "
+pill_emote = "💊 "  # title poll
+alarm_emote = "⏰ "  # poll closed
 light_bulb_emote = "💡 "  # leaderboard
-fire_emote = "🔥 "  # 3 streak
-plane_emote = "✈️ "  # 5 streak
-rocket_emote = "🚀 "  # 7 streak
-star_emote = "⭐️ "  # 10 streak
-planet_emote = "🪐 "  # 12 streak
-trophy_emote = "🏆 "  # 15 streak
-crown_emote = "👑 "  # 17 streak
-moyai_emote = "🗿 "  # 20 streak
+
+top_emote = "🔝 "  # longest streak
+sos_emote = "🆘 "
+boom_emote = "💥 "  
+sad_emote = "😢 "
+sun_emote = "☀️ " 
+astronaut_emote = "👨‍🚀 "
+man_emote = "👨 "
+toothbrush_emote = "🪥 "
+walking_emote = "🚶‍♂️ "
+rocket_emote = "🚀 "
+earth_emote = "🌍 "
+star_emote = "⭐️ "
+satellite_emote = "🛰 "
+hi_emote = "👋 "
+moon_emote = "🌕 "
+footsteps_emote = "👣 "
+alien_emote = "👽 "
+knife_emote = "🔪 "
+gun_emote = "🔫 "
+meat_emote = "🥩 "
+chef_emote = "👨‍🍳 "
+comet_emote = "☄️ "
+medal_emote = "🎖 "
+mayori_emote = "🗿 "
+ufo_emote = "🛸 "
+crown_emote = "👑 "
+statue_emote = "🗽 "
 
 
 def conversation_handler():
@@ -333,30 +353,70 @@ async def schedule_close_poll(bot, poll_id, message_id, end_date):
 
 async def print_scoreboard(bot):
 
-    def compose_string(score_tuple):
+    def compose_string(grid_position, score_tuple):
         telegram_player_id, username, score, streak, longest_streak = score_tuple
-        if streak >= 3 and streak < 5:
-            return f"{username}: {score} points - {streak} in streak {fire_emote}"
-        if streak >= 5 and streak < 7:
-            return f"{username}: {score} points - {streak} in streak {plane_emote}"
-        if streak >= 7 and streak < 10:
-            return f"{username}: {score} points - {streak} in streak {rocket_emote}"
-        if streak >= 10 and streak < 12:
-            return f"{username}: {score} points - {streak} in streak {star_emote}"
-        if streak >= 12 and streak < 15:
-            return f"{username}: {score} points - {streak} in streak {planet_emote}"
-        if streak >= 15 and streak < 17:
-            return f"{username}: {score} points - {streak} in streak {trophy_emote}"
-        if streak >= 17 and streak < 20:
-            return f"{username}: {score} points - {streak} in streak {crown_emote}"
-        if streak >= 20:
-            return f"{username}: {score} points - {streak} in streak {moyai_emote}"
-        else:
-            return f"{username}: {score} points"
-    
+        if streak == 0:
+            return f"{grid_position}.\n{username}: {score} points\n{sos_emote}{boom_emote}Streak over...{sad_emote}\n{top_emote}streak: {longest_streak}"
+        elif streak == 1:
+            return f"{grid_position}.\n{username}: {score} point\n({streak} in a row) - {sun_emote}{earth_emote}Sun is rising! \n{top_emote}streak: {longest_streak}"
+        elif streak == 2:
+            return f"{grid_position}.\n{username}: {score} points\n({streak} in a row) - {man_emote}{toothbrush_emote}Preparing... \n{top_emote}streak: {longest_streak}"
+        elif streak == 3:
+            return f"{grid_position}.\n{username}: {score} points\n({streak} in a row) - {astronaut_emote}Get dressed... \n{top_emote}streak: {longest_streak}"
+        elif streak == 4:
+            return f"{grid_position}.\n{username}: {score} points\n({streak} in a row) - {rocket_emote}{walking_emote}Walking in... \n{top_emote}streak: {longest_streak}"
+        elif streak == 5:
+            return f"{grid_position}.\n{username}: {score} points\n({streak} in a row) - {earth_emote}{rocket_emote}Leaving Earth... \n{top_emote}streak: {longest_streak}"
+        elif streak == 6:
+            return f"{grid_position}.\n{username}: {score} points\n({streak} in a row) - {rocket_emote}{star_emote}In orbit! \n{top_emote}streak: {longest_streak}"
+        elif streak == 7:
+            return f"{grid_position}.\n{username}: {score} points\n({streak} in a row) - {rocket_emote}{hi_emote}{satellite_emote}Waving Starlink! \n{top_emote}streak: {longest_streak}"
+        elif streak == 8:
+            return f"{grid_position}.\n{username}: {score} points\n({streak} in a row) - {rocket_emote}{moon_emote}Approaching Moon... \n{top_emote}streak: {longest_streak}"
+        elif streak == 9:
+            return f"{grid_position}.\n{username}: {score} points\n({streak} in a row) - {astronaut_emote}{footsteps_emote}Walking on Moon... \n{top_emote}streak: {longest_streak}"
+        elif streak == 10:
+            return f"{grid_position}.\n{username}: {score} points\n({streak} in a row) - {astronaut_emote}{hi_emote}{alien_emote}Meeting Bang-o Bong-o!# \n{top_emote}streak: {longest_streak}"
+        elif streak == 11:
+            return f"{grid_position}.\n{username}: {score} points\n({streak} in a row) - {astronaut_emote}{knife_emote}{alien_emote}Killing Bang-o Bong-o!# \n{top_emote}streak: {longest_streak}"
+        elif streak == 12:
+            return f"{grid_position}.\n{username}: {score} points\n({streak} in a row) - {chef_emote}{meat_emote}Eating Bang-o Bong-o!# \n{top_emote}streak: {longest_streak}"
+        elif streak == 13:
+            return f"{grid_position}.\n{username}: {score} points\n({streak} in a row) - {moon_emote}{rocket_emote}Leaving Moon... \n{top_emote}streak: {longest_streak}"
+        elif streak == 14:
+            return f"{grid_position}.\n{username}: {score} points\n({streak} in a row) - {rocket_emote}{comet_emote}Watching Halley's comet! \n{top_emote}streak: {longest_streak}"
+        elif streak == 15:
+            return f"{grid_position}.\n{username}: {score} points\n({streak} in a row) - {rocket_emote}{earth_emote}Coming back to Earth... \n{top_emote}streak: {longest_streak}"
+        elif streak == 16:
+            return f"{grid_position}.\n{username}: {score} points\n({streak} in a row) - {man_emote}{medal_emote}Obtaining honors! \n{top_emote}streak: {longest_streak}"
+        elif streak == 17:
+            return f"{grid_position}.\n{username}: {score} points\n({streak} in a row) - {mayori_emote}You are a Chad! \n{top_emote}streak: {longest_streak}"
+        elif streak == 18:
+            return f"{grid_position}.\n{username}: {score} points\n({streak} in a row) - {ufo_emote}{earth_emote}Aliens are coming! \n{top_emote}streak: {longest_streak}"
+        elif streak == 19:
+            return f"{grid_position}.\n{username}: {score} points\n({streak} in a row) - {alien_emote}{alien_emote}{knife_emote}{man_emote}Aliens want revange! \n{top_emote}streak: {longest_streak}"
+        elif streak == 20:
+            return f"{grid_position}.\n{username}: {score} points\n({streak} in a row) - {alien_emote}{alien_emote}{gun_emote}{man_emote}They suck! \n{top_emote}streak: {longest_streak}"
+        elif streak == 21:
+            return f"{grid_position}.\n{username}: {score} points\n({streak} in a row) - {mayori_emote}{crown_emote}You are the Chaddest guy on Earth! \n{top_emote}streak: {longest_streak}"
+        elif streak == 22:
+            return f"{grid_position}.\n{username}: {score} points\n({streak} in a row) - {mayori_emote}{crown_emote}Please stop, the story is over! \n{top_emote}streak: {longest_streak}"
+        elif streak == 23:
+            return f"{grid_position}.\n{username}: {score} points\n({streak} in a row) - {mayori_emote}{crown_emote}I said stop! \n{top_emote}streak: {longest_streak}"
+        elif streak == 24:
+            return f"{grid_position}.\n{username}: {score} points\n({streak} in a row) - {mayori_emote}{crown_emote}{medal_emote}{medal_emote}Keep two more medals! \n{top_emote}streak: {longest_streak}"
+        elif streak == 25:
+            return f"{grid_position}.\n{username}: {score} points\n({streak} in a row) - {mayori_emote}{crown_emote}{medal_emote}{medal_emote}You can't be the President \n{top_emote}streak: {longest_streak}"
+        elif streak == 26:
+            return f"{grid_position}.\n{username}: {score} points\n({streak} in a row) - {mayori_emote}{crown_emote}{statue_emote}You are the President! \n{top_emote}streak: {longest_streak}"
+        elif streak > 26:
+            return f"{grid_position}.\n{username}: {score} points\n({streak} in a row) - {mayori_emote}{crown_emote} \n{top_emote}streak: {longest_streak}"
+
+
+
     scoreboard = db.Poll().get_scoreboard()
     intro = f"{light_bulb_emote} SCOREBOARD:\n\n"
-    results_string = intro + "\n- ".join([compose_string(score_tuple) for score_tuple in scoreboard])
+    results_string = intro + "\n\n".join([compose_string(grid_position, score_tuple) for grid_position, score_tuple in enumerate(scoreboard, 1)])
 
     await bot.send_message(
         chat_id=os.environ.get("GROUP_ID"),
