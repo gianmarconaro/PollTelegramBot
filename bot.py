@@ -7,6 +7,7 @@ from poll_generator import (
     generate_test_poll,
     close_poll,
     schedule_close_poll,
+    compose_string,
 )
 from datetime import datetime
 from dotenv import load_dotenv
@@ -23,6 +24,8 @@ from telegram.ext import (
     PollAnswerHandler,
 )
 
+light_bulb_emote = "💡 "  # leaderboard
+
 load_dotenv()
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
 CHAT_ID = os.environ.get("GROUP_ID")
@@ -35,11 +38,14 @@ async def unknown(update: Update, context: ContextTypes.DEFAULT_TYPE):
         text="Sorry, I didn't understand that command.",
     )
 
-
+# Function to handle the /send command
 async def send_msg(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    # retrieve the message to send
     message = update.message.text[6:]
     await context.bot.send_message(chat_id=CHAT_ID, text=message)
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text="Message sent successfully.",
+    )
 
 
 # Function to handle the /start command
@@ -72,10 +78,8 @@ async def receive_poll_answer(
 
     if user_option == correct_option:
         db.Poll().save_vote(telegram_user_id, telegram_poll_id, True)
-        # db.Poll().increment_score_player(telegram_user_id)
     else:
         db.Poll().save_vote(telegram_user_id, telegram_poll_id, False)
-        # db.Poll().reset_streak_player(telegram_user_id)
 
 
 # create a function that loads all the polls from db that are not closed,
@@ -91,6 +95,26 @@ async def close_expired_polls(bot: ApplicationBuilder.bot):
             asyncio.create_task(close_poll(bot, poll_id, message_id))
         else:
             asyncio.create_task(schedule_close_poll(bot, poll_id, message_id, end_date))
+
+async def print_scoreboard(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    scoreboard = db.Poll().get_scoreboard()
+    print(scoreboard)
+    intro = f"{light_bulb_emote} SCOREBOARD:\n\n"
+    results_string = intro + "\n\n".join(
+        [
+            compose_string(grid_position, score_tuple)
+            for grid_position, score_tuple in enumerate(scoreboard, 1)
+        ]
+    )
+
+    await context.bot.send_message(
+        chat_id=CHAT_ID,
+        text=results_string,
+    )
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text="Scoreboard sent successfully.",
+    )
 
 
 def main():
@@ -121,6 +145,10 @@ def main():
     # send
     message_handler = CommandHandler("send", send_msg)
     application.add_handler(message_handler)
+
+    # scoreboard
+    scoreboard_handler = CommandHandler("scoreboard", print_scoreboard)
+    application.add_handler(scoreboard_handler)
 
     # unknown
     unknown_handler = MessageHandler(filters.COMMAND, unknown)
