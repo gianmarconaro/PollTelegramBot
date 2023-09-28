@@ -124,6 +124,9 @@ async def get_votes_poll_if_closed(update: Update, context: ContextTypes.DEFAULT
         poll_id, username, correct = vote
         message += f"{username} - {correct} on DeiliPill #{poll_id}\n"
 
+    if message == "":
+        message = "No polls votes found."
+
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
         text=message,
