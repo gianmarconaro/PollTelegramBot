@@ -116,6 +116,19 @@ async def print_scoreboard(update: Update, context: ContextTypes.DEFAULT_TYPE):
         text="Scoreboard sent successfully.",
     )
 
+async def get_votes_poll_if_closed(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    votes = db.Poll().get_votes_poll_if_closed()
+    # create a message concatenating all the votes
+    message = ""
+    for vote in votes:
+        poll_id, username, correct = vote
+        message += f"{username} - {correct} on DeiliPill #{poll_id}\n"
+
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=message,
+    )
+
 
 def main():
     loop = asyncio.new_event_loop()
@@ -149,6 +162,10 @@ def main():
     # scoreboard
     scoreboard_handler = CommandHandler("scoreboard", print_scoreboard)
     application.add_handler(scoreboard_handler)
+
+    # get votes
+    get_votes_handler = CommandHandler("results", get_votes_poll_if_closed)
+    application.add_handler(get_votes_handler)
 
     # unknown
     unknown_handler = MessageHandler(filters.COMMAND, unknown)

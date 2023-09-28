@@ -19,7 +19,7 @@ class Poll:
             print(f"Error: {exc}")
         try:
             c.execute(
-                "CREATE TABLE IF NOT EXISTS players (TELEGRAM_PLAYER_ID text, username text, score int, streak int, longest_streak int, PRIMARY KEY (TELEGRAM_PLAYER_ID))"
+                "CREATE TABLE IF NOT EXISTS players (TELEGRAM_PLAYER_ID text, USERNAME text, SCORE int, STREAK int, LONGEST_STREAK int, PRIMARY KEY (TELEGRAM_PLAYER_ID))"
             )
         except sqlite3.OperationalError as exc:
             print(f"Error: {exc}")
@@ -198,3 +198,12 @@ class Poll:
                     self.increment_score_player(telegram_player_id)
                 else:
                     self.reset_streak_player(telegram_player_id)
+
+    def get_votes_poll_if_closed(self):
+        # select all votes from votes and check if poll is closed
+        conn = sqlite3.connect(self._FILE_DB)
+        c = conn.cursor()
+        c.execute("SELECT polls.POLL_ID, players.USERNAME, votes.CORRECT FROM votes INNER JOIN players ON votes.TELEGRAM_PLAYER_ID = players.TELEGRAM_PLAYER_ID INNER JOIN polls ON votes.TELEGRAM_POLL_ID = polls.TELEGRAM_POLL_ID WHERE polls.CLOSED = ?", (False,))
+        votes = c.fetchall()
+        conn.close()
+        return votes
