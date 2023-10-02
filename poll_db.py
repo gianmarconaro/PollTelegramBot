@@ -145,7 +145,9 @@ class Poll:
         # order by score desc and streak desc
         conn = sqlite3.connect(self._FILE_DB)
         c = conn.cursor()
-        c.execute("SELECT * FROM players ORDER BY score DESC, longest_streak DESC, streak DESC")
+        c.execute(
+            "SELECT * FROM players ORDER BY score DESC, longest_streak DESC, streak DESC"
+        )
         scoreboard = c.fetchall()
         conn.close()
         return scoreboard
@@ -188,7 +190,7 @@ class Poll:
         return poll
 
     def update_scores(self, poll_id):
-        # check thta poll is closed
+        # check that poll is closed
         poll = self.get_poll_status(poll_id)
         if poll:
             votes = self.get_votes(poll_id)
@@ -203,7 +205,26 @@ class Poll:
         # select all votes from votes and check if poll is closed
         conn = sqlite3.connect(self._FILE_DB)
         c = conn.cursor()
-        c.execute("SELECT polls.POLL_ID, players.USERNAME, votes.CORRECT FROM votes INNER JOIN players ON votes.TELEGRAM_PLAYER_ID = players.TELEGRAM_PLAYER_ID INNER JOIN polls ON votes.TELEGRAM_POLL_ID = polls.TELEGRAM_POLL_ID WHERE polls.CLOSED = ?", (False,))
+        c.execute(
+            "SELECT polls.POLL_ID, players.USERNAME, votes.CORRECT FROM votes INNER JOIN players ON votes.TELEGRAM_PLAYER_ID = players.TELEGRAM_PLAYER_ID INNER JOIN polls ON votes.TELEGRAM_POLL_ID = polls.TELEGRAM_POLL_ID WHERE polls.CLOSED = ?",
+            (False,),
+        )
         votes = c.fetchall()
         conn.close()
         return votes
+
+    def update_username(self, telegram_player_id, username):
+        conn = sqlite3.connect(self._FILE_DB)
+        c = conn.cursor()
+        c.execute(
+            "SELECT username FROM players WHERE TELEGRAM_PLAYER_ID = ?, (telegram_player_id,))"
+        )
+        username_db = c.fetchone()[0]
+        # if username is different from the one in db, update it
+        if username_db != username:
+            c.execute(
+                "UPDATE players SET USERNAME = ? WHERE TELEGRAM_PLAYER_ID = ?",
+                (username, telegram_player_id),
+            )
+            conn.commit()
+        conn.close()

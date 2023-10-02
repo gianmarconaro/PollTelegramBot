@@ -38,6 +38,7 @@ async def unknown(update: Update, context: ContextTypes.DEFAULT_TYPE):
         text="Sorry, I didn't understand that command.",
     )
 
+
 # Function to handle the /send command
 async def send_msg(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message = update.message.text[6:]
@@ -73,8 +74,10 @@ async def receive_poll_answer(
     user_option = answer.option_ids[0]
     correct_option = poll[5]
     telegram_user_id = answer.user.id
+    username = answer.user.username
 
-    db.Poll().add_player(telegram_user_id, answer.user.username)
+    db.Poll().add_player(telegram_user_id, username)
+    db.Poll().update_username(telegram_user_id, username)
 
     if user_option == correct_option:
         db.Poll().save_vote(telegram_user_id, telegram_poll_id, True)
@@ -96,6 +99,7 @@ async def close_expired_polls(bot: ApplicationBuilder.bot):
         else:
             asyncio.create_task(schedule_close_poll(bot, poll_id, message_id, end_date))
 
+
 async def print_scoreboard(update: Update, context: ContextTypes.DEFAULT_TYPE):
     scoreboard = db.Poll().get_scoreboard()
     print(scoreboard)
@@ -115,6 +119,7 @@ async def print_scoreboard(update: Update, context: ContextTypes.DEFAULT_TYPE):
         chat_id=update.effective_chat.id,
         text="Scoreboard sent successfully.",
     )
+
 
 async def get_votes_poll_if_closed(update: Update, context: ContextTypes.DEFAULT_TYPE):
     votes = db.Poll().get_votes_poll_if_closed()
