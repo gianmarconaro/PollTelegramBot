@@ -217,7 +217,8 @@ class Poll:
         conn = sqlite3.connect(self._FILE_DB)
         c = conn.cursor()
         c.execute(
-            "SELECT username FROM players WHERE TELEGRAM_PLAYER_ID = ?, (telegram_player_id,))"
+            "SELECT USERNAME FROM players WHERE TELEGRAM_PLAYER_ID = ?",
+            (telegram_player_id,),
         )
         username_db = c.fetchone()[0]
         # if username is different from the one in db, update it
