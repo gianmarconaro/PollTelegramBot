@@ -116,6 +116,56 @@ class Poll:
         )
         conn.commit()
 
+    def delete_poll(self, poll_id, telegram_poll_id):
+        conn = sqlite3.connect(self._FILE_DB)
+        c = conn.cursor()
+        c.execute("DELETE FROM polls WHERE POLL_ID = ?", (poll_id,))
+        c.execute("DELETE FROM votes WHERE TELEGRAM_POLL_ID = ?", (telegram_poll_id,))
+        conn.commit()
+        conn.close()
+
+    def recalculate_score_player(self, telegram_player_id):
+        conn = sqlite3.connect(self._FILE_DB)
+        c = conn.cursor()
+        c.execute(
+            "SELECT * FROM votes WHERE TELEGRAM_PLAYER_ID = ?", (telegram_player_id,)
+        )
+        votes = c.fetchall()
+        score = 0
+        for vote in votes:
+            if vote[2]:
+                score += 1
+        c.execute(
+            "UPDATE players SET score = ? WHERE TELEGRAM_PLAYER_ID = ?",
+            (score, telegram_player_id),
+        )
+        conn.commit()
+        conn.close()
+
+    def recalculate_streak_player(self, telegram_player_id):
+        conn = sqlite3.connect(self._FILE_DB)
+        c = conn.cursor()
+        c.execute(
+            "SELECT * FROM votes WHERE TELEGRAM_PLAYER_ID = ? ORDER BY TELEGRAM_POLL_ID ASC",
+            (telegram_player_id,),
+        )
+        votes = c.fetchall()
+        streak = 0
+        longest_streak = 0
+        for vote in votes:
+            if vote[2]:
+                streak += 1
+                if streak > longest_streak:
+                    longest_streak = streak
+            else:
+                streak = 0
+        c.execute(
+            "UPDATE players SET STREAK = ?, LONGEST_STREAK = ? WHERE TELEGRAM_PLAYER_ID = ?",
+            (streak, longest_streak, telegram_player_id),
+        )
+        conn.commit()
+        conn.close()
+
     def reset_streak_player(self, telegram_player_id):
         conn = sqlite3.connect(self._FILE_DB)
         c = conn.cursor()
@@ -166,10 +216,14 @@ class Poll:
         conn = sqlite3.connect(self._FILE_DB)
         c = conn.cursor()
         c.execute("SELECT TELEGRAM_POLL_ID FROM polls WHERE POLL_ID = ?", (poll_id,))
-        telegram_poll_id = c.fetchone()[0]
+        # se il poll_id non esiste non posso fare il fetchone, gestisci questo errore
+        try:
+            telegram_poll_id = c.fetchone()[0]
+        except TypeError:
+            return None
         conn.close()
         return telegram_poll_id
-
+    
     def get_votes(self, poll_id):
         telegram_poll_id = self.get_telegram_poll_id_from_poll_id(poll_id)
 
@@ -229,3 +283,11 @@ class Poll:
             )
             conn.commit()
         conn.close()
+
+    def get_players_id(self):
+        conn = sqlite3.connect(self._FILE_DB)
+        c = conn.cursor()
+        c.execute("SELECT TELEGRAM_PLAYER_ID FROM players")
+        players_id = c.fetchall()
+        conn.close()
+        return players_id

@@ -25,6 +25,7 @@ from telegram.ext import (
 )
 
 light_bulb_emote = "💡 "  # leaderboard
+warning_emote = "⚠️ "  # warning
 
 load_dotenv()
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
@@ -95,14 +96,13 @@ async def close_expired_polls(bot: ApplicationBuilder.bot):
         end_date = datetime.strptime(end_date, "%Y-%m-%d %H:%M:%S.%f")
 
         if end_date < datetime.now():
-            asyncio.create_task(close_poll(bot, poll_id, message_id))
+            asyncio.create_task(close_poll(bot, poll_id, message_id, False))
         else:
             asyncio.create_task(schedule_close_poll(bot, poll_id, message_id, end_date))
 
 
 async def print_scoreboard(update: Update, context: ContextTypes.DEFAULT_TYPE):
     scoreboard = db.Poll().get_scoreboard()
-    print(scoreboard)
     intro = f"{light_bulb_emote} SCOREBOARD:\n\n"
     results_string = intro + "\n\n".join(
         [
@@ -136,6 +136,79 @@ async def get_votes_poll_if_closed(update: Update, context: ContextTypes.DEFAULT
         chat_id=update.effective_chat.id,
         text=message,
     )
+
+
+async def close_poll_before_time(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    poll_id = update.message.text[7:]
+    if not poll_id.isdigit():
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text="Poll id must be a number.",
+        )
+        return
+
+    telegram_poll_id = db.Poll().get_telegram_poll_id_from_poll_id(poll_id)
+    if not telegram_poll_id:
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=f"Poll #{poll_id} not found.",
+        )
+        return
+
+    if db.Poll().get_poll(telegram_poll_id)[9] == 1:
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=f"Poll #{poll_id} is already closed.",
+        )
+        return
+    
+    # retreive messag_id of the poll
+    message_id = db.Poll().get_poll(telegram_poll_id)[2]
+    await close_poll(context.bot, poll_id, message_id, False)
+
+
+async def delete_poll(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    poll_id = update.message.text[8:]
+    if not poll_id.isdigit():
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text="Poll id must be a number.",
+        )
+        return
+
+    telegram_poll_id = db.Poll().get_telegram_poll_id_from_poll_id(poll_id)
+    if not telegram_poll_id:
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=f"Poll #{poll_id} not found.",
+        )
+        return
+
+    # if the poll is open, close it before deleting it
+    if db.Poll().get_poll(telegram_poll_id)[9] == 0:
+        message_id = db.Poll().get_poll(telegram_poll_id)[2]
+        await close_poll(context.bot, poll_id, message_id, True)
+
+    db.Poll().delete_poll(poll_id, telegram_poll_id)
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=f"Poll #{poll_id} deleted.",
+    )
+    await context.bot.send_message(
+        chat_id=CHAT_ID,
+        text=f"{warning_emote}DEILIPILL #{poll_id} deleted.",
+    )
+
+    players_id = db.Poll().get_players_id()
+    for player_id in players_id:
+        db.Poll().recalculate_score_player(player_id[0])
+        db.Poll().recalculate_streak_player(player_id[0])
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text="Scores and streaks recalculated.",
+    )
+
+    await print_scoreboard(update, context)
 
 
 def main():
@@ -174,6 +247,14 @@ def main():
     # get votes
     get_votes_handler = CommandHandler("results", get_votes_poll_if_closed)
     application.add_handler(get_votes_handler)
+
+    # close poll
+    close_poll_handler = CommandHandler("close", close_poll_before_time)
+    application.add_handler(close_poll_handler)
+
+    # delete poll
+    delete_poll_handler = CommandHandler("delete", delete_poll)
+    application.add_handler(delete_poll_handler)
 
     # unknown
     unknown_handler = MessageHandler(filters.COMMAND, unknown)
