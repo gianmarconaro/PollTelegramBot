@@ -210,6 +210,18 @@ async def delete_poll(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await print_scoreboard(update, context)
 
+async def recalculate_scores(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    players_id = db.Poll().get_players_id()
+    for player_id in players_id:
+        db.Poll().recalculate_score_player(player_id[0])
+        db.Poll().recalculate_streak_player(player_id[0])
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text="Scores and streaks recalculated.",
+    )
+
+    await print_scoreboard(update, context)
+
 
 def main():
     loop = asyncio.new_event_loop()
@@ -255,6 +267,10 @@ def main():
     # delete poll
     delete_poll_handler = CommandHandler("delete", delete_poll)
     application.add_handler(delete_poll_handler)
+
+    # recalculate scores
+    recalculate_scores_handler = CommandHandler("recalculate", recalculate_scores)
+    application.add_handler(recalculate_scores_handler)
 
     # unknown
     unknown_handler = MessageHandler(filters.COMMAND, unknown)
