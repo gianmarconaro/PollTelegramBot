@@ -4,7 +4,7 @@ from telegram import Update
 from telegram.ext import CallbackContext
 
 def authenticated(handler):
-    @wraps
+    @wraps(handler)
     async def handler_with_auth(update: Update, context: CallbackContext):
         admin_id = os.environ.get("ADMIN_ID")
         if not admin_id or not update.message:
@@ -12,7 +12,7 @@ def authenticated(handler):
                 chat_id=update.effective_chat.id,
                 text="Something went wrong.",
             )
-        elif update.message.from_user != admin_id:
+        elif update.message.from_user.id != int(admin_id):
             await context.bot.send_message(
                 chat_id=update.effective_chat.id,
                 text="You are not an admin.",

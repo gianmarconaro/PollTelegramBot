@@ -96,6 +96,7 @@ def conversation_handler():
 
 
 # Function to handle the /reset command
+@authenticated
 async def reset(update: Update, _: CallbackContext):
     current_poll.clear()
     reply_markup = ReplyKeyboardRemove()
@@ -104,7 +105,7 @@ async def reset(update: Update, _: CallbackContext):
         reply_markup=reply_markup,
     )
 
-
+@authenticated
 # Function to handle the /poll command
 async def chose_creation(update: Update, _: CallbackContext):
     current_poll.clear()
@@ -243,7 +244,6 @@ async def enter_create_poll(update: Update, context: CallbackContext):
 
 
 # Function to send the poll to the group
-@authenticated
 async def enter_send_poll(update: Update, context: CallbackContext):
     # send the poll to the group
     selected_option = update.callback_query.data

@@ -103,7 +103,7 @@ async def close_expired_polls(bot: ApplicationBuilder.bot):
         else:
             asyncio.create_task(schedule_close_poll(bot, poll_id, message_id, end_date))
 
-
+@authenticated
 async def print_scoreboard(update: Update, context: ContextTypes.DEFAULT_TYPE):
     scoreboard = db.Poll().get_scoreboard()
     intro = f"{light_bulb_emote} SCOREBOARD:\n\n"
@@ -123,7 +123,7 @@ async def print_scoreboard(update: Update, context: ContextTypes.DEFAULT_TYPE):
         text="Scoreboard sent successfully.",
     )
 
-
+@authenticated
 async def get_votes_poll_if_closed(update: Update, context: ContextTypes.DEFAULT_TYPE):
     votes = db.Poll().get_votes_poll_if_closed()
     # create a message concatenating all the votes
@@ -140,7 +140,7 @@ async def get_votes_poll_if_closed(update: Update, context: ContextTypes.DEFAULT
         text=message,
     )
 
-
+@authenticated
 async def close_poll_before_time(update: Update, context: ContextTypes.DEFAULT_TYPE):
     poll_id = update.message.text[7:]
     if not poll_id.isdigit():
@@ -169,7 +169,7 @@ async def close_poll_before_time(update: Update, context: ContextTypes.DEFAULT_T
     message_id = db.Poll().get_poll(telegram_poll_id)[2]
     await close_poll(context.bot, poll_id, message_id, False)
 
-
+@authenticated
 async def delete_poll(update: Update, context: ContextTypes.DEFAULT_TYPE):
     poll_id = update.message.text[8:]
     if not poll_id.isdigit():
