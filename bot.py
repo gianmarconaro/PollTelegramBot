@@ -24,6 +24,8 @@ from telegram.ext import (
     PollAnswerHandler,
 )
 
+from utils import authenticated
+
 light_bulb_emote = "💡 "  # leaderboard
 warning_emote = "⚠️ "  # warning
 
@@ -41,6 +43,7 @@ async def unknown(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 # Function to handle the /send command
+@authenticated
 async def send_msg(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message = update.message.text[6:]
     await context.bot.send_message(chat_id=CHAT_ID, text=message)

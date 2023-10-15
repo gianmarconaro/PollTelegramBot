@@ -18,6 +18,8 @@ from telegram.ext import (
 )
 import asyncio
 
+from utils import authenticated
+
 # Define the different states a chat can be in
 (
     ENTER_START_CREATION,
@@ -241,6 +243,7 @@ async def enter_create_poll(update: Update, context: CallbackContext):
 
 
 # Function to send the poll to the group
+@authenticated
 async def enter_send_poll(update: Update, context: CallbackContext):
     # send the poll to the group
     selected_option = update.callback_query.data
@@ -288,6 +291,7 @@ async def enter_send_poll(update: Update, context: CallbackContext):
     return ConversationHandler.END
 
 
+@authenticated
 async def generate_test_poll(update: Update, context: CallbackContext):
     # create a poll with a direct command instead of the conversation handler
     current_poll_id = db.Poll().get_next_poll_id()
@@ -332,6 +336,7 @@ async def generate_test_poll(update: Update, context: CallbackContext):
     return ConversationHandler.END
 
 
+@authenticated
 async def close_poll(bot, poll_id, message_id, delete):
     telegram_poll_id = db.Poll().get_telegram_poll_id_from_poll_id(poll_id)
     if not db.Poll().get_poll(telegram_poll_id):
