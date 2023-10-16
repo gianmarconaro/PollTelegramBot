@@ -336,7 +336,6 @@ async def generate_test_poll(update: Update, context: CallbackContext):
     return ConversationHandler.END
 
 
-@authenticated
 async def close_poll(bot, poll_id, message_id, delete):
     telegram_poll_id = db.Poll().get_telegram_poll_id_from_poll_id(poll_id)
     if not db.Poll().get_poll(telegram_poll_id):
