@@ -40,6 +40,9 @@ alarm_emote = "⏰ "  # poll closed
 light_bulb_emote = "💡 "  # leaderboard
 
 top_emote = "🔝 "  # longest streak
+first_medal_emote = "🥇 "
+second_medal_emote = "🥈 "
+third_medal_emote = "🥉 "
 sos_emote = "🆘 "
 boom_emote = "💥 "
 sad_emote = "😢 "
@@ -381,7 +384,14 @@ async def print_scoreboard(bot):
 
 def compose_string(grid_position, score_tuple):
     _, username, score, streak, longest_streak = score_tuple
-    user_score = f"{grid_position}.\n{username}: {score} "
+    if grid_position == 1:
+        user_score = f"{first_medal_emote}\n{username}: {score} "
+    elif grid_position == 2:
+        user_score = f"{second_medal_emote}\n{username}: {score} "
+    elif grid_position == 3:
+        user_score = f"{third_medal_emote}\n{username}: {score} "
+    else:
+        user_score = f"{grid_position}.\n{username}: {score} "
     if streak == 0 and longest_streak == 0:
         return (
             user_score
