@@ -142,7 +142,14 @@ async def enter_question(update: Update, context: CallbackContext):
     if text == "/reset":
         await reset(update, context)
         return ConversationHandler.END
-
+    if len(text) > 300:
+        await update.message.reply_text(
+            "The question is "
+            + len(text)
+            + " characters! Please write a shorter one."
+        )
+        return ENTER_QUESTION
+    
     current_poll_id = db.Poll().get_next_poll_id()
     intro = pill_emote + "DEILIPILL #" + str(current_poll_id)
     current_poll["question"] = intro + "\n\n" + text
